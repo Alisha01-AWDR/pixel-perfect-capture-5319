@@ -12,10 +12,14 @@ type ShellProps = { children: ReactNode; title?: string; subtitle?: string };
 export function AppShell({ children, title = "Monitoring Overview", subtitle = "Live satellite desk · 06:42 UTC" }: ShellProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, isReady, token } = useAuth();
   const [showNewProject, setShowNewProject] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (isReady && !token) navigate({ to: "/login" });
+  }, [isReady, navigate, token]);
 
   async function handleProjectSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
