@@ -1,0 +1,22 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AppShell, MetricCard } from "@/components/darukaa-shell";
+import { listMetrics, listSites, seedMetrics, type Metric, type Site } from "@/lib/darukaa";
+
+export const Route = createFileRoute("/sites/$siteId")({
+  head: () => ({ meta: [{ title: "Site analytics — Darukaa.Earth" }, { name: "description", content: "Review the latest carbon, biodiversity, and canopy readings for a monitored site." }, { property: "og:title", content: "Site analytics — Darukaa.Earth" }, { property: "og:description", content: "Review the latest carbon, biodiversity, and canopy readings for a monitored site." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
+  component: SiteDetailPage,
+});
+
+function SiteDetailPage() {
+  const { siteId } = Route.useParams();
+  const [site, setSite] = useState<Site | null>(null);
+  const [metrics, setMetrics] = useState<Metric[]>([]);
+  const [isSeeding, setIsSeeding] = useState(false);
+  useEffect(() => { void Promise.all([listSites(), listMetrics(siteId)]).then(([sites, nextMetrics]) => { setSite(sites.find((item) => item.id === siteId) ?? null); setMetrics(nextMetrics); }); }, [siteId]);
+  const latest = useMemo(() => { const find = (type: Metric["metric_type"]) => metrics.find((metric) => metric.metric_type === type)?.value; return { carbon: find("carbon"), biodiversity: find("biodiversity"), canopy: find("canopy") }; }, [metrics]);
+  async function generateData() { setIsSeeding(true); setMetrics(await seedMetrics(siteId)); setIsSeeding(false); }
+  return <AppShell title={site?.name ?? "Site analytics"} subtitle={`${site?.area ?? "Boundary"} · latest readings`}><div className="flex-1 overflow-auto p-4"><div className="mb-4"><Link to="/sites" className="flex items-center gap-2 text-sm text-ink-soft hover:text-ink"><ArrowLeft size={15} />Back to sites</Link></div><div className="grid gap-3 md:grid-cols-3"><MetricCard label="Carbon tons / ha" value={latest.carbon ? `${latest.carbon}` : "—"} detail="tCO₂e · latest" /><MetricCard label="Biodiversity index" value={latest.biodiversity ? `${latest.biodiversity}` : "—"} detail="Shannon · latest" tone="ink" /><MetricCard label="Canopy cover" value={latest.canopy ? `${latest.canopy}%` : "—"} detail="Latest reading" /></div>{metrics.length ? <div className="panel mt-4 rounded-[12px] p-5"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="type-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft">Trend line</p><h2 className="type-display mt-1 text-xl font-semibold">Monitoring history</h2></div><span className="type-mono text-[10px] text-ink-soft">{metrics.length} readings</span></div><div className="mt-5 h-72 rounded-[10px] bg-mist-deep/60 p-4"><svg className="h-full w-full" viewBox="0 0 800 260" preserveAspectRatio="none" role="img" aria-label="Monitoring history chart"><path d="M0 192 C70 166 120 180 190 150 S310 176 380 126 S500 124 570 104 S700 76 800 56" fill="none" stroke="var(--color-moss)" strokeWidth="4" vectorEffect="non-scaling-stroke" /><path d="M0 192 C70 166 120 180 190 150 S310 176 380 126 S500 124 570 104 S700 76 800 56 L800 260 L0 260 Z" fill="color-mix(in oklab, var(--color-moss) 12%, transparent)" /><path d="M0 220 C70 200 120 212 190 198 S310 188 380 176 S500 180 570 160 S700 142 800 126" fill="none" stroke="var(--color-amber)" strokeWidth="2" strokeDasharray="5 5" vectorEffect="non-scaling-stroke" /></svg></div><div className="mt-3 flex flex-wrap gap-4 type-mono text-[10px] text-ink-soft"><span className="flex items-center gap-2"><span className="h-0.5 w-5 bg-moss" />Carbon stock</span><span className="flex items-center gap-2"><span className="h-0.5 w-5 bg-amber" />Biodiversity signal</span></div></div> : <div className="panel mt-4 rounded-[12px] p-10 text-center"><p className="type-display text-lg font-semibold">No metrics captured yet</p><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ink-soft">Generate a demo series to preview how this site’s ecological trend will be read over time.</p><Button onClick={generateData} disabled={isSeeding} className="mt-5 bg-moss text-mist hover:bg-moss-deep"><RefreshCw size={15} />{isSeeding ? "Generating…" : "Generate demo data"}</Button></div>}</div></AppShell>;
+}
