@@ -23,7 +23,7 @@ export type Metric = {
   recorded_at: string;
 };
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ?? "";
+const API_BASE_URL = (import.meta.env["VITE_API_BASE_URL"] as string | undefined)?.replace(/\/$/, "") ?? "";
 const DEMO_TOKEN = "darukaa-demo-session";
 
 const demoProjects: Project[] = [
