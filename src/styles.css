@@ -237,16 +237,28 @@
   }
 
   .map-site-shape {
-    fill: color-mix(in oklab, var(--color-moss) 20%, transparent);
-    stroke: var(--color-moss);
-    stroke-width: 2;
+    fill: rgba(56, 189, 248, 0.24);
+    stroke: #38bdf8;
+    stroke-width: 2.2;
+    filter: drop-shadow(0 0 3px rgba(56, 189, 248, 0.45));
     vector-effect: non-scaling-stroke;
     pointer-events: auto;
     cursor: pointer;
+    transition: fill 0.2s ease, stroke 0.2s ease, filter 0.2s ease;
   }
 
   .map-site-shape:hover {
-    fill: color-mix(in oklab, var(--color-moss) 32%, transparent);
+    fill: rgba(56, 189, 248, 0.42);
+    stroke: #7dd3fc;
+    stroke-width: 2.8;
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.75));
+  }
+
+  .map-site-shape-selected {
+    fill: rgba(56, 189, 248, 0.45);
+    stroke: #bae6fd;
+    stroke-width: 3.2;
+    filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.95));
   }
 
   @keyframes console-grid-drift {
